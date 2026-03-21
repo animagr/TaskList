@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cadence — Task Reminders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg: #f6f2ed;
+  --bg-warm: #efe9e1;
+  --surface: #fff;
+  --surface-hover: #faf8f5;
+  --ink: #2c2420;
+  --ink-soft: #6b5e54;
+  --ink-muted: #a89888;
+  --accent: #c45d3e;
+  --accent-soft: #e8a48e;
+  --accent-bg: #fdf0eb;
+  --green: #4a8c5c;
+  --green-bg: #edf5ef;
+  --yellow: #b8860b;
+  --yellow-bg: #fdf5e0;
+  --red: #c44040;
+  --red-bg: #fdf0f0;
+  --border: #e2dbd3;
+  --border-light: #ede8e2;
+  --radius: 10px;
+  --shadow-sm: 0 1px 3px rgba(44,36,32,0.06);
+  --shadow-md: 0 4px 16px rgba(44,36,32,0.08);
+  --shadow-lg: 0 8px 32px rgba(44,36,32,0.12);
+  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'DM Serif Display', serif;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100dvh;
+  line-height: 1.5;
+  padding-bottom: max(1rem, var(--safe-bottom));
+}
+
+/* ── SETUP SCREEN ── */
+.setup-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 2rem;
+}
+.setup-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  max-width: 460px;
+  width: 100%;
+}
+.setup-card h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2rem);
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+}
+.setup-card p {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+.setup-card label {
+  display: block;
+  font-weight: 500;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  margin-bottom: 0.4rem;
+}
+.setup-card input[type="text"] {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: var(--bg);
+  transition: border-color 0.2s;
+  margin-bottom: 1rem;
+}
+.setup-card input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.setup-card .hint {
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  margin-top: -0.7rem;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+.setup-card .hint a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.7rem 1.4rem;
+}
+.btn-primary:hover { background: #b05236; }
+.btn-primary:active { transform: scale(0.97); }
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-soft);
+  padding: 0.5rem 0.8rem;
+}
+.btn-ghost:hover { color: var(--ink); background: var(--bg-warm); }
+.btn-small {
+  font-size: 0.78rem;
+  padding: 0.4rem 0.7rem;
+}
+.btn-danger { color: var(--red); }
+.btn-danger:hover { background: var(--red-bg); color: var(--red); }
+
+/* ── APP LAYOUT ── */
+.app { display: none; max-width: 680px; margin: 0 auto; padding: 1rem; }
+.app-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 1rem 0 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.app-header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3.5vw, 1.8rem);
+}
+.app-header .settings-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-muted);
+  padding: 0.3rem;
+  border-radius: 6px;
+  transition: color 0.2s;
+}
+.app-header .settings-btn:hover { color: var(--ink); }
+
+/* ── FILTERS ── */
+.filters {
+  display: flex;
+  gap: 0.3rem;
+  margin-bottom: 1.2rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.filters::-webkit-scrollbar { display: none; }
+.filter-btn {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.4rem 0.9rem;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.filter-btn:hover { border-color: var(--ink-muted); color: var(--ink); }
+.filter-btn.active {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+/* ── ADD TASK BAR ── */
+.add-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.add-bar input {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.add-bar input:focus { outline: none; border-color: var(--accent); }
+.add-bar input::placeholder { color: var(--ink-muted); }
+
+/* ── TASK LIST ── */
+.task-list { list-style: none; }
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.3s ease;
+  animation: slideIn 0.25s ease-out;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.task-item:active { transform: scale(0.995); }
+.task-item.completed { opacity: 0.55; }
+.task-item.completed .task-name { text-decoration: line-through; color: var(--ink-muted); }
+
+/* Checkbox */
+.task-check {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  transition: all 0.2s;
+  background: transparent;
+}
+.task-check:hover { border-color: var(--accent); }
+.task-check.checked {
+  background: var(--green);
+  border-color: var(--green);
+}
+.task-check.checked svg { opacity: 1; }
+.task-check svg { opacity: 0; transition: opacity 0.15s; }
+
+/* Recurring badge instead of checkbox */
+.task-recurring-badge {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.task-body { flex: 1; min-width: 0; }
+.task-name {
+  font-weight: 500;
+  font-size: 0.92rem;
+  word-break: break-word;
+}
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.01em;
+}
+.tag-due { background: var(--yellow-bg); color: var(--yellow); }
+.tag-overdue { background: var(--red-bg); color: var(--red); }
+.tag-recurring { background: var(--accent-bg); color: var(--accent); }
+.tag-done { background: var(--green-bg); color: var(--green); }
+
+.task-actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.1rem;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+}
+.task-item:hover .task-actions { opacity: 1; }
+@media (pointer: coarse) { .task-actions { opacity: 1; } }
+.task-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-muted);
+  padding: 0.3rem;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.task-actions button:hover { color: var(--red); background: var(--red-bg); }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--ink-muted);
+}
+.empty-state svg { margin-bottom: 0.8rem; opacity: 0.35; }
+.empty-state p { font-size: 0.9rem; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,36,32,0.35);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+@media (min-width: 640px) { .modal-overlay { align-items: center; } }
+
+.modal {
+  background: var(--surface);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: clamp(1.2rem, 4vw, 2rem);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+@media (min-width: 640px) {
+  .modal { border-radius: var(--radius); transform: scale(0.95) translateY(10px); }
+  .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin-bottom: 1.2rem;
+}
+.form-group { margin-bottom: 1rem; }
+.form-group label {
+  display: block;
+  font-weight: 500;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  margin-bottom: 0.35rem;
+}
+.form-group input, .form-group select {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--bg);
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.recurrence-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0;
+}
+.toggle-row span { font-size: 0.88rem; color: var(--ink-soft); }
+.toggle {
+  width: 44px; height: 24px;
+  border-radius: 12px;
+  background: var(--border);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+}
+.toggle.on { background: var(--accent); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+.toggle.on::after { transform: translateX(20px); }
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: max(1.5rem, var(--safe-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  background: var(--ink);
+  color: var(--bg);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  z-index: 200;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── NOTIFICATION PERMISSION BANNER ── */
+.notif-banner {
+  background: var(--yellow-bg);
+  border: 1px solid #e0cc88;
+  border-radius: var(--radius);
+  padding: 0.7rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--yellow);
+}
+.notif-banner button {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ── MISC ── */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); border: 0;
+}
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setupScreen" class="setup-screen">
+  <div class="setup-card">
+    <h1>Cadence</h1>
+    <p>A task manager with recurring reminders. Your data is stored securely on JSONBin. Enter your keys below to get started.</p>
+    <label for="binId">JSONBin Bin ID</label>
+    <input type="text" id="binId" placeholder="e.g. 665a1f...">
+    <p class="hint">Leave blank to create a new bin automatically. <a href="https://jsonbin.io" target="_blank" rel="noopener">Get a free API key →</a></p>
+    <label for="apiKey">JSONBin API Key</label>
+    <input type="text" id="apiKey" placeholder="$2a$10$...">
+    <p class="hint">Your secret key from jsonbin.io — stored only in this browser.</p>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="initApp()">Get Started</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="app">
+  <header class="app-header">
+    <h1>Cadence</h1>
+    <button class="settings-btn" onclick="showSettings()" title="Settings">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="2"/><path d="M10 1.5v2M10 16.5v2M1.5 10h2M16.5 10h2M3.4 3.4l1.4 1.4M15.2 15.2l1.4 1.4M3.4 16.6l1.4-1.4M15.2 4.8l1.4-1.4"/></svg>
+    </button>
+  </header>
+
+  <div id="notifBanner" class="notif-banner hidden">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 1.5a4 4 0 014 4c0 3 1.5 4.5 1.5 4.5H2.5S4 8.5 4 5.5a4 4 0 014-4zM6 12.5a2 2 0 004 0"/></svg>
+    Enable browser notifications for reminders
+    <button class="btn btn-small btn-primary" onclick="requestNotifPermission()">Enable</button>
+    <button class="btn btn-small btn-ghost" onclick="dismissNotifBanner()">Later</button>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="active">Active</button>
+    <button class="filter-btn" data-filter="recurring">Recurring</button>
+    <button class="filter-btn" data-filter="overdue">Overdue</button>
+    <button class="filter-btn" data-filter="completed">Completed</button>
+  </div>
+
+  <div class="add-bar">
+    <input type="text" id="quickAdd" placeholder="Add a task…" onkeydown="if(event.key==='Enter')openAddModal()">
+    <button class="btn btn-primary" onclick="openAddModal()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+      Add
+    </button>
+  </div>
+
+  <ul id="taskList" class="task-list"></ul>
+  <div id="emptyState" class="empty-state hidden">
+    <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><rect x="6" y="10" width="36" height="28" rx="3"/><path d="M6 18h36M18 10V6M30 10V6"/></svg>
+    <p>No tasks here yet. Add one above to get started.</p>
+  </div>
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div id="modalOverlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" role="dialog" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">New Task</h2>
+    <div class="form-group">
+      <label for="taskName">Task name</label>
+      <input type="text" id="taskName" placeholder="What needs doing?">
+    </div>
+    <div class="form-group">
+      <label for="taskDue">Due date</label>
+      <input type="date" id="taskDue">
+    </div>
+    <div class="form-group">
+      <label for="taskTime">Reminder time (optional)</label>
+      <input type="time" id="taskTime">
+    </div>
+    <div class="toggle-row">
+      <span>Recurring task</span>
+      <button class="toggle" id="recurToggle" onclick="toggleRecur()"></button>
+    </div>
+    <div id="recurFields" class="hidden">
+      <div class="recurrence-row">
+        <div class="form-group">
+          <label for="recurEvery">Every</label>
+          <input type="number" id="recurEvery" min="1" value="1">
+        </div>
+        <div class="form-group">
+          <label for="recurUnit">Period</label>
+          <select id="recurUnit">
+            <option value="days">Days</option>
+            <option value="weeks">Weeks</option>
+            <option value="months">Months</option>
+            <option value="years">Years</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="toggle-row">
+      <span>Email reminder</span>
+      <button class="toggle" id="emailToggle" onclick="toggleEmail()"></button>
+    </div>
+    <div id="emailField" class="hidden form-group">
+      <label for="emailAddr">Email address</label>
+      <input type="text" id="emailAddr" placeholder="you@example.com">
+      <p class="hint" style="margin-top:0.3rem;font-size:0.72rem;color:var(--ink-muted)">
+        Uses <a href="https://www.emailjs.com/" target="_blank" rel="noopener">EmailJS</a> — set up a free account and enter Service/Template IDs in settings.
+      </p>
+    </div>
+    <input type="hidden" id="editId" value="">
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div id="settingsOverlay" class="modal-overlay" onclick="if(event.target===this)closeSettings()">
+  <div class="modal" role="dialog">
+    <h2>Settings</h2>
+    <div class="form-group">
+      <label>JSONBin Bin ID</label>
+      <input type="text" id="sBinId" readonly style="opacity:0.6">
+    </div>
+    <div class="form-group">
+      <label>JSONBin API Key</label>
+      <input type="text" id="sApiKey" readonly style="opacity:0.6">
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+    <p style="font-size:0.82rem;color:var(--ink-soft);margin-bottom:0.8rem">
+      <strong>Email reminders (optional):</strong> Sign up at <a href="https://www.emailjs.com" target="_blank" rel="noopener">emailjs.com</a>, create a service + template, then paste IDs below. The template should use <code>{{task_name}}</code>, <code>{{due_date}}</code>, and <code>{{to_email}}</code>.
+    </p>
+    <div class="form-group">
+      <label for="ejsPublic">EmailJS Public Key</label>
+      <input type="text" id="ejsPublic" placeholder="e.g. user_abc123">
+    </div>
+    <div class="form-group">
+      <label for="ejsService">EmailJS Service ID</label>
+      <input type="text" id="ejsService" placeholder="e.g. service_xyz">
+    </div>
+    <div class="form-group">
+      <label for="ejsTemplate">EmailJS Template ID</label>
+      <input type="text" id="ejsTemplate" placeholder="e.g. template_abc">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-danger" onclick="resetApp()">Reset App</button>
+      <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ── STATE ──
+let tasks = [];
+let currentFilter = 'all';
+let config = {};
+const LS_KEY = 'cadence_config';
+
+// ── INIT ──
+function loadConfig() {
+  try { config = JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { config = {}; }
+}
+
+function boot() {
+  loadConfig();
+  if (config.apiKey && config.binId) {
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    fetchTasks();
+    checkNotifPermission();
+    startReminderLoop();
+  }
+}
+
+// ── JSONBIN ──
+const API_BASE = 'https://api.jsonbin.io/v3';
+
+async function createBin(apiKey) {
+  const res = await fetch(`${API_BASE}/b`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': apiKey,
+      'X-Bin-Name': 'cadence-tasks',
+      'X-Bin-Private': 'true'
+    },
+    body: JSON.stringify({ tasks: [] })
+  });
+  if (!res.ok) throw new Error('Failed to create bin');
+  const data = await res.json();
+  return data.metadata.id;
+}
+
+async function fetchTasks() {
+  try {
+    const res = await fetch(`${API_BASE}/b/${config.binId}/latest`, {
+      headers: { 'X-Master-Key': config.apiKey }
+    });
+    if (!res.ok) throw new Error('Fetch failed');
+    const data = await res.json();
+    tasks = data.record.tasks || [];
+  } catch (e) {
+    console.error(e);
+    toast('Could not load tasks — check your keys');
+    tasks = [];
+  }
+  render();
+}
+
+async function saveTasks() {
+  try {
+    await fetch(`${API_BASE}/b/${config.binId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': config.apiKey
+      },
+      body: JSON.stringify({ tasks })
+    });
+  } catch (e) {
+    console.error(e);
+    toast('Failed to save — will retry');
+  }
+}
+
+// ── SETUP ──
+async function initApp() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { toast('API key is required'); return; }
+  let binId = document.getElementById('binId').value.trim();
+  try {
+    if (!binId) {
+      toast('Creating your bin…');
+      binId = await createBin(apiKey);
+    }
+    config = { apiKey, binId };
+    localStorage.setItem(LS_KEY, JSON.stringify(config));
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    fetchTasks();
+    checkNotifPermission();
+    startReminderLoop();
+  } catch (e) {
+    toast('Error: ' + e.message);
+  }
+}
+
+// ── MODAL ──
+function openAddModal() {
+  const quickVal = document.getElementById('quickAdd').value.trim();
+  document.getElementById('modalTitle').textContent = 'New Task';
+  document.getElementById('taskName').value = quickVal;
+  document.getElementById('taskDue').value = '';
+  document.getElementById('taskTime').value = '';
+  document.getElementById('recurToggle').classList.remove('on');
+  document.getElementById('recurFields').classList.add('hidden');
+  document.getElementById('recurEvery').value = 1;
+  document.getElementById('recurUnit').value = 'days';
+  document.getElementById('emailToggle').classList.remove('on');
+  document.getElementById('emailField').classList.add('hidden');
+  document.getElementById('emailAddr').value = config.defaultEmail || '';
+  document.getElementById('editId').value = '';
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('taskName').focus(), 200);
+}
+
+function openEditModal(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  document.getElementById('modalTitle').textContent = 'Edit Task';
+  document.getElementById('taskName').value = t.name;
+  document.getElementById('taskDue').value = t.dueDate || '';
+  document.getElementById('taskTime').value = t.reminderTime || '';
+  document.getElementById('editId').value = id;
+  if (t.recurrence) {
+    document.getElementById('recurToggle').classList.add('on');
+    document.getElementById('recurFields').classList.remove('hidden');
+    document.getElementById('recurEvery').value = t.recurrence.every;
+    document.getElementById('recurUnit').value = t.recurrence.unit;
+  } else {
+    document.getElementById('recurToggle').classList.remove('on');
+    document.getElementById('recurFields').classList.add('hidden');
+  }
+  if (t.emailReminder) {
+    document.getElementById('emailToggle').classList.add('on');
+    document.getElementById('emailField').classList.remove('hidden');
+    document.getElementById('emailAddr').value = t.emailReminder;
+  } else {
+    document.getElementById('emailToggle').classList.remove('on');
+    document.getElementById('emailField').classList.add('hidden');
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+function toggleRecur() {
+  const el = document.getElementById('recurToggle');
+  el.classList.toggle('on');
+  document.getElementById('recurFields').classList.toggle('hidden', !el.classList.contains('on'));
+}
+function toggleEmail() {
+  const el = document.getElementById('emailToggle');
+  el.classList.toggle('on');
+  document.getElementById('emailField').classList.toggle('hidden', !el.classList.contains('on'));
+}
+
+// ── SAVE TASK ──
+function saveTask() {
+  const name = document.getElementById('taskName').value.trim();
+  if (!name) { toast('Give the task a name'); return; }
+  const dueDate = document.getElementById('taskDue').value || null;
+  const reminderTime = document.getElementById('taskTime').value || null;
+  const isRecur = document.getElementById('recurToggle').classList.contains('on');
+  const recurrence = isRecur ? {
+    every: parseInt(document.getElementById('recurEvery').value) || 1,
+    unit: document.getElementById('recurUnit').value
+  } : null;
+  const isEmail = document.getElementById('emailToggle').classList.contains('on');
+  const emailReminder = isEmail ? document.getElementById('emailAddr').value.trim() || null : null;
+  const editId = document.getElementById('editId').value;
+
+  if (editId) {
+    const idx = tasks.findIndex(t => t.id === editId);
+    if (idx > -1) {
+      tasks[idx] = { ...tasks[idx], name, dueDate, reminderTime, recurrence, emailReminder };
+    }
+  } else {
+    tasks.push({
+      id: crypto.randomUUID(),
+      name,
+      dueDate,
+      reminderTime,
+      recurrence,
+      emailReminder,
+      completed: false,
+      lastReminded: null,
+      createdAt: new Date().toISOString()
+    });
+  }
+  document.getElementById('quickAdd').value = '';
+  closeModal();
+  saveTasks();
+  render();
+  toast(editId ? 'Task updated' : 'Task added');
+}
+
+// ── TOGGLE COMPLETE ──
+function toggleComplete(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  if (t.recurrence && t.dueDate) {
+    // Advance to next due date
+    t.dueDate = advanceDate(t.dueDate, t.recurrence);
+    t.lastReminded = null;
+    toast('Next: ' + formatDate(t.dueDate));
+  } else {
+    t.completed = !t.completed;
+  }
+  saveTasks();
+  render();
+}
+
+function advanceDate(dateStr, rec) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  // Keep advancing until the date is in the future
+  let next = new Date(d);
+  while (next <= today) {
+    if (rec.unit === 'days') next.setDate(next.getDate() + rec.every);
+    else if (rec.unit === 'weeks') next.setDate(next.getDate() + rec.every * 7);
+    else if (rec.unit === 'months') next.setMonth(next.getMonth() + rec.every);
+    else if (rec.unit === 'years') next.setFullYear(next.getFullYear() + rec.every);
+  }
+  return next.toISOString().split('T')[0];
+}
+
+// ── DELETE ──
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasks();
+  render();
+  toast('Task deleted');
+}
+
+// ── RENDER ──
+function render() {
+  const list = document.getElementById('taskList');
+  const empty = document.getElementById('emptyState');
+
+  let filtered = tasks;
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (currentFilter === 'active') filtered = tasks.filter(t => !t.completed);
+  else if (currentFilter === 'recurring') filtered = tasks.filter(t => t.recurrence);
+  else if (currentFilter === 'overdue') filtered = tasks.filter(t => !t.completed && t.dueDate && new Date(t.dueDate + 'T00:00:00') < today);
+  else if (currentFilter === 'completed') filtered = tasks.filter(t => t.completed);
+
+  // Sort: overdue first, then by due date, then no-date at end
+  filtered.sort((a, b) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    const da = a.dueDate ? new Date(a.dueDate) : null;
+    const db = b.dueDate ? new Date(b.dueDate) : null;
+    if (da && db) return da - db;
+    if (da) return -1;
+    if (db) return 1;
+    return 0;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  list.innerHTML = filtered.map(t => {
+    const isOverdue = !t.completed && t.dueDate && new Date(t.dueDate + 'T00:00:00') < today;
+    const isDueToday = t.dueDate && t.dueDate === today.toISOString().split('T')[0];
+    const isRecurring = !!t.recurrence;
+
+    let dueBadge = '';
+    if (t.dueDate) {
+      if (isOverdue) dueBadge = `<span class="tag tag-overdue">Overdue · ${formatDate(t.dueDate)}</span>`;
+      else if (isDueToday) dueBadge = `<span class="tag tag-due">Due today</span>`;
+      else dueBadge = `<span class="tag tag-due">${formatDate(t.dueDate)}</span>`;
+    }
+    if (t.completed) dueBadge = `<span class="tag tag-done">Done</span>`;
+
+    let recurBadge = '';
+    if (isRecurring) {
+      const r = t.recurrence;
+      const label = r.every === 1 ? r.unit.replace(/s$/, '') : `${r.every} ${r.unit}`;
+      recurBadge = `<span class="tag tag-recurring">⟳ Every ${label}</span>`;
+    }
+
+    const checkHtml = isRecurring
+      ? `<div class="task-recurring-badge" onclick="toggleComplete('${t.id}')" title="Mark done — advances to next date">
+           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 7a6 6 0 0111 0M12 7a6 6 0 01-11 0"/><path d="M12 3v4h-4"/></svg>
+         </div>`
+      : `<div class="task-check ${t.completed ? 'checked' : ''}" onclick="toggleComplete('${t.id}')">
+           <svg width="14" height="14" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M3 7l3 3 5-6"/></svg>
+         </div>`;
+
+    return `
+      <li class="task-item ${t.completed ? 'completed' : ''}">
+        ${checkHtml}
+        <div class="task-body" onclick="openEditModal('${t.id}')">
+          <div class="task-name">${escHtml(t.name)}</div>
+          <div class="task-meta">${dueBadge}${recurBadge}</div>
+        </div>
+        <div class="task-actions">
+          <button onclick="deleteTask('${t.id}')" title="Delete">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+          </button>
+        </div>
+      </li>`;
+  }).join('');
+}
+
+// ── FILTERS ──
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelector('.filter-btn.active').classList.remove('active');
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+// ── REMINDERS ──
+function checkNotifPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    document.getElementById('notifBanner').classList.remove('hidden');
+  }
+}
+function requestNotifPermission() {
+  Notification.requestPermission().then(p => {
+    document.getElementById('notifBanner').classList.add('hidden');
+    if (p === 'granted') toast('Notifications enabled');
+  });
+}
+function dismissNotifBanner() { document.getElementById('notifBanner').classList.add('hidden'); }
+
+function startReminderLoop() {
+  checkReminders();
+  setInterval(checkReminders, 60000); // every minute
+}
+
+function checkReminders() {
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const currentTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  tasks.forEach(t => {
+    if (t.completed || !t.dueDate) return;
+    // Check if due today (or overdue) and at/past reminder time
+    const dueDate = new Date(t.dueDate + 'T00:00:00');
+    const today = new Date(); today.setHours(0,0,0,0);
+    if (dueDate > today) return; // not due yet
+
+    const reminderTime = t.reminderTime || '09:00';
+    if (currentTime < reminderTime) return; // not time yet
+
+    const remindKey = `${t.id}_${todayStr}`;
+    if (t.lastReminded === remindKey) return; // already reminded today
+
+    // Fire reminder
+    t.lastReminded = remindKey;
+    fireNotification(t);
+    if (t.emailReminder) sendEmailReminder(t);
+    saveTasks();
+  });
+}
+
+function fireNotification(task) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const body = task.recurrence
+    ? `Recurring · Due ${formatDate(task.dueDate)}`
+    : `Due ${formatDate(task.dueDate)}`;
+  new Notification('Cadence Reminder', { body: `${task.name} — ${body}`, icon: '📋' });
+}
+
+async function sendEmailReminder(task) {
+  const ejs = {
+    public: config.ejsPublic,
+    service: config.ejsService,
+    template: config.ejsTemplate
+  };
+  if (!ejs.public || !ejs.service || !ejs.template) return;
+
+  try {
+    // Load EmailJS SDK if needed
+    if (!window.emailjs) {
+      await loadScript('https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js');
+      emailjs.init(ejs.public);
+    }
+    await emailjs.send(ejs.service, ejs.template, {
+      task_name: task.name,
+      due_date: formatDate(task.dueDate),
+      to_email: task.emailReminder
+    });
+  } catch (e) {
+    console.error('Email send failed:', e);
+  }
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+// ── SETTINGS ──
+function showSettings() {
+  document.getElementById('sBinId').value = config.binId || '';
+  document.getElementById('sApiKey').value = config.apiKey || '';
+  document.getElementById('ejsPublic').value = config.ejsPublic || '';
+  document.getElementById('ejsService').value = config.ejsService || '';
+  document.getElementById('ejsTemplate').value = config.ejsTemplate || '';
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+function closeSettings() { document.getElementById('settingsOverlay').classList.remove('open'); }
+function saveSettings() {
+  config.ejsPublic = document.getElementById('ejsPublic').value.trim();
+  config.ejsService = document.getElementById('ejsService').value.trim();
+  config.ejsTemplate = document.getElementById('ejsTemplate').value.trim();
+  localStorage.setItem(LS_KEY, JSON.stringify(config));
+  closeSettings();
+  toast('Settings saved');
+}
+function resetApp() {
+  if (!confirm('This will clear your local keys. Your JSONBin data is not deleted.')) return;
+  localStorage.removeItem(LS_KEY);
+  location.reload();
+}
+
+// ── UTILS ──
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const now = new Date(); now.setHours(0,0,0,0);
+  const diff = Math.round((d - now) / 86400000);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  if (diff === -1) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── BOOT ──
+boot();
+</script>
+</body>
+</html>
